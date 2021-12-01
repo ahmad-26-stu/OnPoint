@@ -2,14 +2,19 @@ package com.OnPoint.Registration;
 
 import com.OnPoint.DatabaseRelation.Profile;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class userAuth {
     public Profile profile = new Profile();
-    public static Scanner scan = new Scanner(System.in);
-    public void userLogin(){
+    public Scanner scan = new Scanner(System.in);
+
+    public void userLogin(Connection connect){
 
         System.out.println("===>Welcome to OnPoint<===\n");
         System.out.println("press R to register");
@@ -22,18 +27,30 @@ public class userAuth {
         String pass = scan.nextLine();
 
         if(pass.equals("R") || pass.equals("r") || user.equals("r") || user.equals("R")){
-            userRegister();
+            userRegister(connect);
         }
         else if (!authPass(pass, false) && (!authUsername(user, false) || !authEmail(user, false))) {
             System.out.println("username or password is wrong");
-            userLogin();
+            userLogin(connect);
         }
         else{
             profile.setUsername(user);
+            try {
+                String sql = "SELECT email FROM profile  WHERE username = ?";
+                PreparedStatement st = connect.prepareStatement(sql);
+                st.setString(1, user);
+                ResultSet rs = st.executeQuery();
+                if (rs.next()) {
+                    profile.setEmail((rs.getString("email")));
+                }
+            } catch (SQLException except) {
+                System.out.println("Connection Failed on else of userLogin");
+                except.printStackTrace();
+            }
+            profile.setPassword(pass);
         }
     }
-
-    public String userRegister() {
+    public String userRegister(Connection connect) {
         System.out.println("===>Register<===");
         System.out.println("username: ");
         String user = scan.nextLine();
@@ -45,7 +62,7 @@ public class userAuth {
         String pass = scan.nextLine();
         if (authPass(pass, true) && (authUsername(user, true) && authEmail(email, true))) {
             setProfile(user, email, pass);
-            userLogin();
+            userLogin(connect);
         }else{
             String reportUsername = !authUsername(user, true) ?
                     "username already taken": "Correct";
@@ -57,7 +74,7 @@ public class userAuth {
             System.out.println(reportUsername);
             System.out.println(reportEmail);
             System.out.println(reportPass);
-            userRegister();
+            userRegister(connect);
         }
         return user;
     }
@@ -106,10 +123,6 @@ public class userAuth {
         //belum
     }
     public boolean authUsername(String username, boolean registerMode){
-        //pembanding dari database
-        //setelah dibandingkan dapat dimasukkan datanya ke dalam database
-        //pakai set...()
-        //belum
         if(registerMode && !profile.checkUsername(username)){
             return true;
         } else if ( !registerMode && profile.checkUsername(username)){
@@ -119,5 +132,4 @@ public class userAuth {
             return false;
         }
     }
-
 }

@@ -5,26 +5,49 @@ package com.OnPoint;
 import com.OnPoint.DatabaseRelation.Activity;
 import com.OnPoint.DatabaseRelation.Profile;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class Account {
-    Profile profile = new Profile();
+    private final Profile profile = new Profile();
     ArrayList<Activity> activityList = new ArrayList<>();
 
+    //Profile Management
+    public Profile getProfile(){
+        return this.profile;
+    }
     public void showProfile() {
-        System.out.println("username    = " + profile.getUsername());
-        System.out.println("email   = " + profile.getEmail());
-        System.out.println("password    = " + profile.getPassword());
-        System.out.println("rating    = " + profile.getRating());
+        System.out.println("username   = " + profile.getUsername());
+        System.out.println("email      = " + profile.getEmail());
+        System.out.println("password   = " + profile.getPassword());
+        System.out.println("rating     = " + profile.getRating().getRate());
+        System.out.println("total meet = " + profile.getRating().getTotalMeet());
     }
 
     //Activity CRUD
+    public void reloadActivity(Connection connect, String username){
+//        List<String> listActivityName = new ArrayList<>();
+//        List<Timestamp> listActivityTime = new ArrayList<>();
+        try {
+            String sql = "SELECT activity_name,start_time FROM activities WHERE issuer = ?";
+            PreparedStatement st = connect.prepareStatement(sql);
+            st.setString(1, username);
+            ResultSet rs = st.executeQuery();
+            String c1 = "activity_name";
+            String c2 = "start_time";
+            while (rs.next()){
+                System.out.println(rs.getString(c1) + " " + rs.getString(c2));
+//                activityList.add(new Activity(rs.getString(c1),rs.getTimestamp(c2)));
+//                listActivityName.add(rs.getString(c1));
+//                listActivityTime.add(rs.getTimestamp(c2));
+            }
+        } catch (SQLException except) {
+            System.out.println("Connection Failed on reloadActivity");
+            except.printStackTrace();
+        }
+    }
     public void showActivity(){
         if(activityList.size() <= 0) {
             System.out.println("You are free from any schedule :)");
@@ -36,19 +59,18 @@ public class Account {
         }
     }
     public void addActivity(String activityName, String activityTime, Connection connect){
-        String timeinput = activityTime;
+        String timeInput = activityTime;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        LocalDateTime timeIn = LocalDateTime.parse(timeinput, formatter);
+        LocalDateTime timeIn = LocalDateTime.parse(timeInput, formatter);
         Timestamp timestamp = Timestamp.valueOf(timeIn);
         activityList.add(new Activity(activityName, timestamp));
 
         try{
-            String sql = "INSERT INTO activities (username, name_activity, start_time) VALUES (? ,?, ?)";
+            String sql = "INSERT INTO activities (activity_name, start_time, issuer) VALUES (? ,?, ?)";
             PreparedStatement statement = connect.prepareStatement(sql);
-            statement.setString(1, this.profile.getUsername());
-            statement.setString(2, activityName);
-            statement.setTimestamp(3, timestamp);
-
+            statement.setString(1, activityName);
+            statement.setTimestamp(2, timestamp);
+            statement.setString(3, this.profile.getUsername());
             int rows = statement.executeUpdate();
             if (rows>0){
                 System.out.println("Activity Added");
@@ -59,11 +81,19 @@ public class Account {
             except.printStackTrace();
         }
     }
-    public void removeActivity(int index){
-        if (activityList.size() <= 0){
-            System.out.println("You are free from any schedule :)");
-        } else {
-            activityList.remove(index);
+    public void removeActivity(String activityName, String name, Connection connect){
+        try {
+            String sql = "DELETE FROM activities WHERE activity_name = ? AND issuer = ?";
+            PreparedStatement st = connect.prepareStatement(sql);
+            st.setString(1, activityName);
+            st.setString(2, name);
+            int row = st.executeUpdate();
+            if (row>0){
+                System.out.println("Activity Have Been Removed!");
+            }
+        } catch (SQLException except) {
+            System.out.println("Connection Failed removeActivity");
+            except.printStackTrace();
         }
     }
     public void editActivity(int index, String activityName, String activityTime){

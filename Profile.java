@@ -67,7 +67,7 @@ public class Profile{
         return password_exist;
     }
     public void INSERTProfile(String username, String email, String password) {
-        setRating();
+        setRating(new Rating());
         setUsername(username);
         setEmail(email);
         setPassword(password);
@@ -77,7 +77,7 @@ public class Profile{
             statement.setString(1, username);
             statement.setString(2, email);
             statement.setString(3, password);
-            statement.setDouble(4, getRating());
+            statement.setDouble(4, getRating().getRate());
 
             int rows = statement.executeUpdate();
             if (rows > 0) {
@@ -115,8 +115,8 @@ public class Profile{
         //mencari berdasarkan username yang ingin merubah activity
         //username dari getName()
     }
-    public void setRating() {
-        this.rating = new Rating();
+    public void setRating(Rating rating) {
+        this.rating = rating;
     }
     public void setUsername(String username) {
         this.username = username;
@@ -127,8 +127,8 @@ public class Profile{
     public void setPassword(String password) {
         this.password = password;
     }
-    public double getRating() {
-        return this.rating.getRate();
+    public Rating getRating() {
+        return this.rating;
     }
     public String getUsername() {
         return this.username;

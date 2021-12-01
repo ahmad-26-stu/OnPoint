@@ -21,4 +21,7 @@ public class Rating {
     public double getRate(){
         return this.rate;
     }
+    public double getTotalMeet(){
+        return this.totalMeet;
+    }
 }
