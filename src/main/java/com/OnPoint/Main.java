@@ -9,26 +9,32 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Main {
-
     public static void main (String[] args) throws SQLException {
-        //Signing up
-        userAuth signup = new userAuth();
-        signup.userLogin();
-
         Scanner scan = new Scanner(System.in);
-        //menaruh account pada aplikasi yang dibuka
-        Account account = new Account();
-        account.profile.setUsername(signup.profile.getUsername()); //DEBUG
-        System.out.println(account.profile.getUsername()); //DEBUG
+
         // Mekanisme connect to database
         Appsql appsql = new Appsql();
         Connection conndb = appsql.connect();
 
-        // System.out.println(account.approvalFriend()); DEBUG
+        //Signing up
+        userAuth signup = new userAuth();
+        signup.userLogin(conndb);
+
+        //menaruh account pada aplikasi yang dibuka
+        Account account = new Account();
+        account.getProfile().setUsername(signup.profile.getUsername());
+        account.getProfile().setEmail(signup.profile.getEmail());
+        account.getProfile().setPassword(signup.profile.getPassword());
+        account.getProfile().setRating(signup.profile.getRating());
+
+//        System.out.println(account.getProfile().getUsername()); //DEBUG
+
+//        System.out.println(account.approvalFriend()); DEBUG
 
         while(true){
             System.out.println("\n");
-            account.showActivity();
+            account.reloadActivity(conndb, account.getProfile().getUsername());
+//            account.showActivity();
             System.out.println("\n");
 
             System.out.println("----OnPoint----");
@@ -43,7 +49,7 @@ public class Main {
 
             switch (input){
                 case 1:
-                    System.out.println(account.profile.getUsername()); //DEBUG
+//                    System.out.println(account.getProfile().getUsername()); //DEBUG
                     String addName = scan.nextLine();
                     System.out.println("Activity name: ");
                     addName = scan.nextLine();
@@ -55,25 +61,22 @@ public class Main {
                     account.addActivity(addName, addTime, conndb);
                     break;
                 case 2:
-                    if (true) {
-                        System.out.println("index: ");
-                        int indexName = scan.nextInt();
-
-                        account.removeActivity(indexName);
+                    if(true){
+                        System.out.println("activity name: ");
+                        String activityName = scan.next();
+                        account.removeActivity(activityName, account.getProfile().getUsername(), conndb);
                     }
                     break;
                 case 3:
                     if (true) {
                         System.out.println("index: ");
                         int indName = scan.nextInt();
-
                         System.out.println("Update activity name: ");
                         String updateName;
                         updateName = scan.nextLine();
                         System.out.println("format time input yyyy-MM-dd HH:mm");
                         System.out.println("Update appointment time: ");
                         String updateTime = scan.nextLine();
-
                         account.editActivity(indName, updateName, updateTime);
                     }
                     break;
