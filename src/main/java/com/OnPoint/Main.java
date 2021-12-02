@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+import static java.lang.System.exit;
+
 public class Main {
     public static void main (String[] args) throws SQLException {
         Scanner scan = new Scanner(System.in);
@@ -27,16 +29,13 @@ public class Main {
         account.getProfile().setPassword(signup.profile.getPassword());
         account.getProfile().setRating(signup.profile.getRating());
 
-//        System.out.println(account.getProfile().getUsername()); //DEBUG
-
-//        System.out.println(account.approvalFriend()); DEBUG
+        //Reload Activity yang ada pada database menuju List yang dimiliki program
+        account.reloadActivity(conndb, account.getProfile().getUsername());
 
         while(true){
             System.out.println("\n");
-            account.reloadActivity(conndb, account.getProfile().getUsername());
-//            account.showActivity();
+            account.showActivity();
             System.out.println("\n");
-
             System.out.println("----OnPoint----");
             System.out.println("1. Add schedule");
             System.out.println("2. Remove schedule");
@@ -49,7 +48,6 @@ public class Main {
 
             switch (input){
                 case 1:
-//                    System.out.println(account.getProfile().getUsername()); //DEBUG
                     String addName = scan.nextLine();
                     System.out.println("Activity name: ");
                     addName = scan.nextLine();
@@ -58,21 +56,22 @@ public class Main {
                     System.out.println("appointment time: ");
                     String addTime = scan.nextLine();
 
-                    account.addActivity(addName, addTime, conndb);
+                    account.addActivity(addName, addTime);
                     break;
                 case 2:
                     if(true){
-                        System.out.println("activity name: ");
-                        String activityName = scan.next();
-                        account.removeActivity(activityName, account.getProfile().getUsername(), conndb);
+                        System.out.println("Activity index: ");
+                        int activityIndex;
+                        activityIndex = scan.nextInt();
+                        account.removeActivity(activityIndex);
                     }
                     break;
                 case 3:
                     if (true) {
                         System.out.println("index: ");
                         int indName = scan.nextInt();
+                        String updateName = scan.nextLine();
                         System.out.println("Update activity name: ");
-                        String updateName;
                         updateName = scan.nextLine();
                         System.out.println("format time input yyyy-MM-dd HH:mm");
                         System.out.println("Update appointment time: ");
@@ -88,9 +87,10 @@ public class Main {
                     break;
                 case 6:
                     //keluar
-                    //exit();
+                    account.uploadActivity(conndb, account.getProfile().getUsername());
                     scan.close();
                     conndb.close();
+                    exit(0);
                     break;
             }
 

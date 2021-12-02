@@ -4,7 +4,6 @@ package com.OnPoint;
 
 import com.OnPoint.DatabaseRelation.Activity;
 import com.OnPoint.DatabaseRelation.Profile;
-
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,8 +27,6 @@ public class Account {
 
     //Activity CRUD
     public void reloadActivity(Connection connect, String username){
-//        List<String> listActivityName = new ArrayList<>();
-//        List<Timestamp> listActivityTime = new ArrayList<>();
         try {
             String sql = "SELECT activity_name,start_time FROM activities WHERE issuer = ?";
             PreparedStatement st = connect.prepareStatement(sql);
@@ -38,10 +35,9 @@ public class Account {
             String c1 = "activity_name";
             String c2 = "start_time";
             while (rs.next()){
-                System.out.println(rs.getString(c1) + " " + rs.getString(c2));
-//                activityList.add(new Activity(rs.getString(c1),rs.getTimestamp(c2)));
-//                listActivityName.add(rs.getString(c1));
-//                listActivityTime.add(rs.getTimestamp(c2));
+                String kolom1 = rs.getString(c1);
+                Timestamp time  = rs.getTimestamp(c2);
+                activityList.add(new Activity(kolom1,time));
             }
         } catch (SQLException except) {
             System.out.println("Connection Failed on reloadActivity");
@@ -54,63 +50,51 @@ public class Account {
         }else{
             System.out.println("--Appointment--");
             for(int i = 0; i < activityList.size(); i++) {
-                System.out.println(activityList.get(i).getTime() + " " + activityList.get(i).getName());
+                System.out.println(activityList.get(i).getName() + " " + activityList.get(i).getTime());
             }
         }
     }
-    public void addActivity(String activityName, String activityTime, Connection connect){
+    public void addActivity(String activityName, String activityTime){
         String timeInput = activityTime;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime timeIn = LocalDateTime.parse(timeInput, formatter);
         Timestamp timestamp = Timestamp.valueOf(timeIn);
         activityList.add(new Activity(activityName, timestamp));
-
-        try{
-            String sql = "INSERT INTO activities (activity_name, start_time, issuer) VALUES (? ,?, ?)";
-            PreparedStatement statement = connect.prepareStatement(sql);
-            statement.setString(1, activityName);
-            statement.setTimestamp(2, timestamp);
-            statement.setString(3, this.profile.getUsername());
-            int rows = statement.executeUpdate();
-            if (rows>0){
-                System.out.println("Activity Added");
-            }
-        }
-        catch (SQLException except) {
-            System.out.println("Connection Failed");
-            except.printStackTrace();
-        }
     }
-    public void removeActivity(String activityName, String name, Connection connect){
-        try {
-            String sql = "DELETE FROM activities WHERE activity_name = ? AND issuer = ?";
-            PreparedStatement st = connect.prepareStatement(sql);
-            st.setString(1, activityName);
-            st.setString(2, name);
-            int row = st.executeUpdate();
-            if (row>0){
-                System.out.println("Activity Have Been Removed!");
-            }
-        } catch (SQLException except) {
-            System.out.println("Connection Failed removeActivity");
-            except.printStackTrace();
-        }
+    public void removeActivity(int index){
+        activityList.remove(index-1);
     }
     public void editActivity(int index, String activityName, String activityTime){
-//        if (activityList.size() <= 0){
-//            System.out.println("You are free from any schedule :)");
-//        }else {
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-//            LocalDateTime timeIn = LocalDateTime.parse(activityTime, formatter);
-//            activityList.set(index, new Activity(activityName, timeIn));
-//        }
-    }
-    public Activity getActivity(int index){
         if (activityList.size() <= 0){
             System.out.println("You are free from any schedule :)");
-            return null;
         }else {
-            return activityList.get(index);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            Timestamp timeIn = Timestamp.valueOf(LocalDateTime.parse(activityTime, formatter));
+            activityList.set(index-1, new Activity(activityName, timeIn));
+        }
+    }
+    public void uploadActivity(Connection connect, String issuer){
+        try {
+            String sql = "DELETE FROM activities WHERE issuer = ?";
+            PreparedStatement st = connect.prepareStatement(sql);
+            st.setString(1, issuer);
+            int row = st.executeUpdate();
+            if (row>0){
+                for (int i=0; i<activityList.size(); i++){
+                    sql = "INSERT INTO activities (activity_name, start_time, issuer) VALUES (?,?,?)";
+                    st = connect.prepareStatement(sql);
+                    st.setString(1, activityList.get(i).getName());
+                    st.setTimestamp(2, activityList.get(i).getTime());
+                    st.setString(3, issuer);
+                    row = st.executeUpdate();
+                    if (row>0){
+                        System.out.println("Database Successfully Uploaded");
+                    }
+                }
+            }
+        } catch (SQLException except) {
+            System.out.println("Connection Failed on uploadActivity");
+            except.printStackTrace();
         }
     }
 

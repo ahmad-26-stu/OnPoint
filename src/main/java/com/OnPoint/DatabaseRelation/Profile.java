@@ -87,7 +87,6 @@ public class Profile{
             System.out.println("Connection Failed");
             except.printStackTrace();
         }
-
     }
 
     //database
