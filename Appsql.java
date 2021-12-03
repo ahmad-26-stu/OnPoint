@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:Appsql.java
 package com.OnPoint.DatabaseRelation;
 
 import java.sql.*;
@@ -18,4 +19,26 @@ public class Appsql {
         }
         return conn;
     }
+=======
+package com.OnPoint.DatabaseRelation;
+
+import java.sql.*;
+
+public class Appsql {
+
+    private final String url = "jdbc:postgresql://localhost:5432/onpoint";
+    private final String user = "postgres";
+    private final String password = "";
+
+    public Connection connect() {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url, user, password);
+            System.out.println("Connected to the PostgreSQL Server Successfully.");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return conn;
+    }
+>>>>>>> Stashed changes:src/main/java/com/OnPoint/DatabaseRelation/Appsql.java
 }
